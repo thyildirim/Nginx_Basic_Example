@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  api1:
+    build:
+      context: ./api1
+      dockerfile: Dockerfile
+    #ports:
+    #  - "8001:8001"
+    networks:
+      - my_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/hi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api2:
+    build:
+      context: ./api2
+      dockerfile: Dockerfile
+    #ports:
+    #  - "8002:8002"
+    networks:
+      - my_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/hi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx-1.26.2/conf/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8080:8080"
+    depends_on:
+      api1:
+        condition: service_healthy
+      api2:
+        condition: service_healthy
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
